@@ -40,8 +40,10 @@ const SavedBooks = () => {
     }
   };
 
+  const userDataLength = userData.savedBooks ? userData.savedBooks.length : 0;
+
   // if data isn't here yet, say so
-  if (!userDataLength) {
+  if (loading) {
     return <h2>LOADING...</h2>;
   }
 
@@ -54,8 +56,8 @@ const SavedBooks = () => {
       </div>
       <Container>
         <h2 className='pt-5'>
-          {userData.savedBooks.length
-            ? `Viewing ${userData.savedBooks.length} saved ${userData.savedBooks.length === 1 ? 'book' : 'books'}:`
+          {userDataLength
+            ? `Viewing ${userDataLength} saved ${userDataLength === 1 ? 'book' : 'books'}:`
             : 'You have no saved books!'}
         </h2>
         <Row>
