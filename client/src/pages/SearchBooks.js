@@ -5,18 +5,20 @@ import {
   Form,
   Button,
   Card,
-  Row
+  Row,
+  Alert,
 } from 'react-bootstrap';
 
 import { useMutation } from '@apollo/client';
 import Auth from '../utils/auth';
 import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
-import { SAVE_BOOK } from '../graphql/mutations';
+import { SAVE_BOOK } from '../utils/mutations';
 
 const SearchBooks = () => {
   // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState([]);
+  const [showError, setShowError] = useState(false);
   // create state for holding our search field data
   const [searchInput, setSearchInput] = useState('');
 
@@ -60,7 +62,7 @@ const SearchBooks = () => {
       setSearchedBooks(bookData);
       setSearchInput('');
     } catch (err) {
-      console.error(err);
+      setShowError(true);
     }
   };
 
@@ -68,7 +70,6 @@ const SearchBooks = () => {
   const handleSaveBook = async (bookId) => {
     // find the book in `searchedBooks` state by the matching id
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
-
     // get token
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
@@ -78,13 +79,13 @@ const SearchBooks = () => {
 
     try {
       // saveBook mutation
-      const { data } = await saveBook({
+      await saveBook({
         variables: { book: { ...bookToSave } },
       });
       // if book successfully saves to user's account, save book id to state
-      setSavedBookIds([...savedBookIds, bookToSave.bookId]);
+      setSavedBookIds([...savedBookIds, bookId]);
     } catch (err) {
-      console.error(err);
+      setShowError(true);
     }
   };
 
@@ -114,7 +115,7 @@ const SearchBooks = () => {
           </Form>
         </Container>
       </div>
-
+      {showError && <Alert variant="danger">Something went wrong!</Alert>}
       <Container>
         <h2 className='pt-5'>
           {searchedBooks.length
@@ -124,7 +125,7 @@ const SearchBooks = () => {
         <Row>
           {searchedBooks.map((book) => {
             return (
-              <Col md="4">
+              <Col md="4" key={book.bookId}>
                 <Card key={book.bookId} border='dark'>
                   {book.image ? (
                     <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />

@@ -11,13 +11,17 @@ import {
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_ME } from '../graphql/queries';
-import { REMOVE_BOOK } from '../graphql/mutations';
+import { GET_ME } from '../utils/queries';
+import { REMOVE_BOOK } from '../utils/mutations';
 
 const SavedBooks = () => {
+  const [userData, setUserData] = useState({});
   const [showError, setShowError] = useState(false);
-  const { loading, data } = useQuery(GET_ME);
-  const userData = data?.me || {};
+  const { loading } = useQuery(GET_ME,{
+    onCompleted: (data) => {
+      setUserData({...data.me});
+    }
+  });
 
   const [removeBook, { error }] = useMutation(REMOVE_BOOK);
 
@@ -29,7 +33,10 @@ const SavedBooks = () => {
     }
 
     try {
-      await removeBook({ variables: { bookId } });
+      const deletedBook = await removeBook({
+        variables: { bookId: bookId }
+      });
+      setUserData(deletedBook?.data.removeBook);
       removeBookId(bookId);
     } catch (err) {
       console.error(err);
